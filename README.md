@@ -1,6 +1,3 @@
-Below is the updated README with your requested usage examples:
-
-```markdown
 # LLMify-Code
 
 **LLMify-Code** is a lightweight Python tool that transforms your local codebase into a single, well-structured text file—ready to be ingested by large language models like ChatGPT. The tool extracts the entire directory tree and file contents (handling encoding issues gracefully) and optionally counts tokens using tiktoken. Output can be generated in plain text or JSON format.
