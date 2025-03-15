@@ -1,0 +1,21 @@
+# llmify_config.yaml
+# This configuration file allows you to customize ignore rules for LLMify-Code.
+
+ignored_dirs:
+  - .github
+  - .pytest_cache
+  - .pytest_cache/v
+  - .pytest_cache/v/cache
+  - .venv
+  - venv
+  - __pycache__
+
+ignored_files:
+  - .pylintrc
+  - .gitignore
+  - codebase.txt
+  - codebase.json
+  - "*.pyc"
+  - "*.pyd"
+  - "*.so"
+  - "CACHEDIR.TAG"

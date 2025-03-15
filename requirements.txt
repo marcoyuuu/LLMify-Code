@@ -1,0 +1,6 @@
+typer>=0.9
+rich>=13.5
+tiktoken>=0.5
+ruamel.yaml>=0.17
+pytest>=8.0
+pylint>=3.3
