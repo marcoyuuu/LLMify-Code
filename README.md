@@ -27,19 +27,12 @@
 ```
 LLMify-Code/
 ├── .github/                   # GitHub workflows and related files
-├── .pytest_cache/             # Cache for pytest runs
-├── .venv/                     # Virtual environment (hidden)
 ├── src/
 │   └── extractor/
 │       ├── __init__.py        # Package initializer for extractor
 │       └── llm_code_prep.py   # Main extraction script
 ├── tests/
 │   └── test_extractor.py      # Unit tests for the extraction tool
-├── venv/                      # (Alternate) Virtual environment directory
-├── .gitignore                 # Files/directories to be ignored by Git
-├── .pre-commit-config.yaml    # Pre-commit hook configuration
-├── .pylintrc                  # Pylint configuration
-├── codebase.txt               # Example output file (generated)
 ├── CONTRIBUTING.md            # Contribution guidelines
 ├── llmify_config.yaml         # YAML configuration for ignore rules
 ├── README.md                  # This documentation file
