@@ -13,11 +13,13 @@ isolated and do not depend on an actual codebase.
 Usage:
     Run pytest to execute all tests.
 """
+
 import os
 import tempfile
 import shutil
 import json
 from extractor import llm_code_prep
+
 
 def create_sample_directory(base_dir: str) -> None:
     """
@@ -44,10 +46,11 @@ def create_sample_directory(base_dir: str) -> None:
     with open(os.path.join(base_dir, "llm_code_prep.py"), "w", encoding="utf-8") as f:
         f.write("This file should be ignored.")
 
+
 def test_get_directory_tree() -> None:
     """
-    Test that the directory tree is generated correctly
-    and that ignored directories and files are excluded.
+    Test that the directory tree is generated correctly and that ignored directories
+    and files are excluded.
 
     Expected behavior:
       - 'node_modules' and 'llm_code_prep.py' should not appear in the output.
@@ -57,7 +60,7 @@ def test_get_directory_tree() -> None:
     try:
         create_sample_directory(temp_dir)
 
-        # Define ignored rules matching the ones used in the application.
+        # Define ignore rules to simulate the YAML configuration.
         ignored_dirs = {"node_modules"}
         ignored_files = {"llm_code_prep.py"}
 
@@ -74,6 +77,7 @@ def test_get_directory_tree() -> None:
     finally:
         shutil.rmtree(temp_dir)
 
+
 def test_json_output() -> None:
     """
     Test that the JSON output is generated correctly.
@@ -89,7 +93,7 @@ def test_json_output() -> None:
     try:
         create_sample_directory(temp_dir)
 
-        # Define ignored rules.
+        # Define ignore rules.
         ignored_dirs = {"node_modules"}
         ignored_files = {"llm_code_prep.py"}
 
@@ -113,6 +117,7 @@ def test_json_output() -> None:
     finally:
         shutil.rmtree(temp_dir)
 
+
 def test_token_count() -> None:
     """
     Test the token counting functionality.
@@ -127,6 +132,7 @@ def test_token_count() -> None:
     if token_count is not None:
         assert isinstance(token_count, int)
         assert token_count > 0
+
 
 if __name__ == "__main__":
     test_get_directory_tree()

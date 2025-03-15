@@ -1,21 +1,26 @@
 # llmify_config.yaml
-# This configuration file allows you to customize ignore rules for LLMify-Code.
+# Configuration to ignore unnecessary files and directories for LLMify-Code.
 
 ignored_dirs:
-  - .github
-  - .pytest_cache
-  - .pytest_cache/v
-  - .pytest_cache/v/cache
+  - node_modules
+  - logs
+  - config
+  - .git
   - .venv
   - venv
   - __pycache__
+  - .pytest_cache
 
 ignored_files:
-  - .pylintrc
+  - .dockerignore
+  - .env
   - .gitignore
-  - codebase.txt
-  - codebase.json
+  - .eslintrc.json
+  - .prettierignore
+  - .prettierrc
+  - package.json
+  - yarn.lock
   - "*.pyc"
   - "*.pyd"
   - "*.so"
-  - "CACHEDIR.TAG"
+  - "*.log"

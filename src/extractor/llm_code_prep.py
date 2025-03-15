@@ -7,7 +7,9 @@ aggregating source code from files into a single output file. Optionally, it can
 count tokens using tiktoken and output results in JSON format with metadata.
 
 Features:
-- Loads ignore rules from a YAML configuration file located in the project root.
+- Loads ignore rules from a YAML configuration file.
+  The script first checks for a config file in the target directory.
+  If not found there, it falls back to the configuration file in the project root.
 - Provides output in plain text (default) or JSON format.
 - Optionally counts tokens for the extracted output.
 
@@ -39,8 +41,8 @@ console = Console()
 
 def load_config(config_path: str) -> Dict[str, Any]:
     """
-    Loads a YAML configuration file for custom ignore rules.
-    If the file is missing or empty, fallback to empty ignore lists.
+    Loads a YAML configuration file for ignore rules.
+    If the file is missing or cannot be parsed, returns empty ignore rules.
 
     Parameters:
         config_path (str): Path to the YAML configuration file.
@@ -48,16 +50,15 @@ def load_config(config_path: str) -> Dict[str, Any]:
     Returns:
         dict: Configuration dictionary containing 'ignored_dirs' and 'ignored_files'.
     """
+    yaml = YAML(typ="safe")
     try:
-        yaml = YAML(typ="safe")
         with open(config_path, "r", encoding="utf-8") as f:
             config = yaml.load(f) or {}
         console.log("[green]Configuration loaded from %s.[/green]", config_path)
         return config
     except (FileNotFoundError, PermissionError, YAMLError) as e:
         console.log(
-            "[yellow]Could not load config file %s: %s. "
-            "No ignore rules applied.[/yellow]", 
+            "[yellow]Could not load config file %s: %s. No ignore rules applied.[/yellow]",
             config_path, e
         )
         return {"ignored_dirs": [], "ignored_files": []}
@@ -75,6 +76,34 @@ def merge_ignore_rules(config: Dict[str, Any]) -> Tuple[set, set]:
     ignored_dirs = set(config.get("ignored_dirs", []))
     ignored_files = set(config.get("ignored_files", []))
     return ignored_dirs, ignored_files
+
+def determine_config_path(abs_directory: str, config: Optional[str]) -> Optional[str]:
+    """
+    Determines the configuration file path to use.
+    If a config is provided, returns it.
+    Otherwise, checks for 'llmify_config.yaml' in the target directory.
+    If not found, falls back to the 'llmify_config.yaml' in the project root.
+
+    Parameters:
+        abs_directory (str): Absolute path of the target directory.
+        config (Optional[str]): User-provided config path.
+
+    Returns:
+        Optional[str]: The configuration file path or None.
+    """
+    if config is not None:
+        return config
+    target_config = os.path.join(abs_directory, "llmify_config.yaml")
+    if os.path.exists(target_config):
+        return target_config
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    root_config = os.path.join(project_root, "llmify_config.yaml")
+    if os.path.exists(root_config):
+        return root_config
+    console.log(
+        "[yellow]No configuration file found; no ignore rules will be applied.[/yellow]"
+    )
+    return None
 
 def get_directory_tree(
     directory: str, ignored_dirs: set, ignored_files: set, indent: str = ""
@@ -132,7 +161,6 @@ def extract_code_text(
         out_file.write(tree)
         out_file.write("\n=== End of Directory Listing ===\n\n")
         for root, dirs, files in os.walk(directory):
-            # Filter out ignored directories by their basename
             dirs[:] = [d for d in dirs if d not in ignored_dirs]
             for file in files:
                 if file in ignored_files or file.endswith((".exe", ".dll", ".bin")):
@@ -186,7 +214,7 @@ def extract_code_json(
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4)
     console.log(
-        "[bold green]✅ JSON output generated successfully into %s[/bold green]", 
+        "[bold green]✅ JSON output generated successfully into %s[/bold green]",
         output_file
     )
 
@@ -215,15 +243,28 @@ def count_tokens_in_text(text: str, model: str = "gpt-4") -> Optional[int]:
 
 @app.command()
 def extract(
-    directory: str = typer.Option(os.getcwd(), "--directory", "-d",
-                                  help="Target directory to extract."),
-    output: str = typer.Option("codebase.txt", "--output", "-o",
-                               help="Output file name."),
-    output_format: str = typer.Option("text", "--output-format", "-f",
-                                      help="Output format: 'text' or 'json'.",
-                                      show_default=True),
-    tokenize: bool = typer.Option(False, "--tokenize", "-t",
-                                  help="Display token count for the output.")
+    directory: str = typer.Option(
+        os.getcwd(), "--directory", "-d", help="Target directory to extract."
+    ),
+    output: str = typer.Option(
+        "codebase.txt", "--output", "-o", help="Output file name."
+    ),
+    output_format: str = typer.Option(
+        "text", "--output-format", "-f",
+        help="Output format: 'text' or 'json'.", show_default=True
+    ),
+    tokenize: bool = typer.Option(
+        False, "--tokenize", "-t", help="Display token count for the output."
+    ),
+    config: Optional[str] = typer.Option(
+        None,
+        "--config",
+        "-c",
+        help="Path to a YAML configuration file with ignore rules. "
+             "If not provided, the script first checks for 'llmify_config.yaml' "
+             "in the target directory. If not found, it falls back to the "
+             "'llmify_config.yaml' in the project root."
+    )
 ):
     """
     Extract the codebase from the given directory and output it in text or JSON format.
@@ -234,13 +275,18 @@ def extract(
         --output (-o): Output file name.
         --output-format (-f): Format of the output file ('text' or 'json').
         --tokenize (-t): If set, counts tokens in the final output.
+        --config (-c): Path to a YAML file with ignore rules.
     """
     abs_directory = os.path.abspath(directory)
     console.log("[blue]Target directory:[/blue] %s", abs_directory)
 
-    # Load ignore rules from YAML configuration file (located in the project root).
-    config_path = "llmify_config.yaml"
-    config_data = load_config(config_path)
+    # Determine the configuration file to use.
+    config_path = determine_config_path(abs_directory, config)
+    if config_path:
+        config_data = load_config(config_path)
+    else:
+        config_data = {"ignored_dirs": [], "ignored_files": []}
+
     ignored_dirs, ignored_files = merge_ignore_rules(config_data)
 
     if not typer.confirm("Proceed with code extraction?"):
