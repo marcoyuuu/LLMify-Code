@@ -1,6 +1,6 @@
 # LLMify-Code
 
-**LLMify-Code** is a lightweight Python tool that transforms your local codebase into a single, well-structured text file—ready to be ingested by large language models like ChatGPT. The tool extracts the entire directory tree and file contents (handling encoding issues gracefully) and can optionally count tokens using [tiktoken](https://github.com/openai/tiktoken). Output can be generated in plain text or JSON format.
+**LLMify-Code** is a lightweight Python tool that transforms your local codebase into a single, well-structured text file—ready to be ingested by large language models like ChatGPT. Inspired by the need for tools like [Gitingest](https://github.com/cyclotruc/gitingest) but designed for **private repositories**, it enables secure, local code extraction for LLM processing without relying on third-party services. The tool extracts the entire directory tree and file contents (handling encoding issues gracefully) and can optionally count tokens using [tiktoken](https://github.com/openai/tiktoken). Output can be generated in plain text or JSON format.
 
 This project was inspired by the personal need for a tool similar to Gitingest, but designed to work with private repositories and to be run locally, ensuring code privacy and security.
 
